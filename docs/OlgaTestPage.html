@@ -1,17 +1,245 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Olga RTCLauncher</title>
-    <link rel="stylesheet" href="https://rtclauncher.dev.luware.com/Content/rtc-launcher.css"> 
-  </head>
-  <body>
-   <div rl-site-contact contact-url="/api/ee0a7a5d033ce811945700155d218659/sites/e930488b-e452-e811-9104-08dce072696b/contacts/dd6d91e9-033c-e811-9457-00155d218659" header-key="X-Forwarded-For" header-value="172.01.01.01; 172.02.02.02" ng-jq="jQueryLuware"></div>
-    <div rl-site-contact contact-url="/api/ee0a7a5d033ce811945700155d218659/sites/e930488b-e452-e811-9104-08dce072696b/contacts/fe10a1cf-f0dd-e811-90f7-08dce072695b" header-key="X-Forwarded-For" header-value="172.01.01.01; 172.02.02.02" ng-jq="jQueryLuware"></div>
-   <div rl-site-contact contact-url="/api/ee0a7a5d033ce811945700155d218659/sites/e930488b-e452-e811-9104-08dce072696b/contacts/7597675d-47c3-e811-9105-08dce072696b" header-key="X-Forwarded-For" header-value="172.01.01.01; 172.02.02.02" ng-jq="jQueryLuware"></div>
-    <script src="https://rtclauncher.dev.luware.com/Content/rtc-launcher.js" type="text/javascript"></script>
-    <script type="text/javascript">
-        rtcLauncher.bootstrap("https://rtclauncherapi.dev.luware.com"); 
-   </script>
+
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+</head>
+
+<body>
+    <audio id="testAudio"></audio>
+     <video id="testPresentation" autoplay="true"></video>
+    <video id="testVideo" autoplay="true"></video>
+    <video id="testSelfVideo" autoplay="true"></video>
+	
+    <script src="dist/Scripts/EventSource.js"></script>
+    <script src="dist/Scripts/pexrtc.js"></script>
+    <script src="dist/luware.rtclauncher.sdk.js"></script>
+    <script>
+
+        function onStopVideo(){
+            console.log("Video was stopped")
+            var container = document.querySelector('#testVideo');
+            container.srcObject = null;
+            container.src = "";
+
+            var selfContainer = document.querySelector('#testSelfVideo');
+            selfContainer.srcObject = null;
+            selfContainer.src = "";
+        }
+        function setupVideo(data) {
+			console.log("Video was started")
+
+            var container = document.querySelector('#testVideo');
+            var selfContainer = document.querySelector('#testSelfVideo');
+            if (data.videoUrl) {
+                if (typeof (data.videoUrl) == "string") {
+                    container.src = data.videoUrl;
+                } else {
+                    try {
+                        container.srcObject = data.videoUrl;
+                    } catch (error) {
+                        container.src = URL.createObjectURL(data.videoUrl);
+                    }
+                }
+            }
+            else {
+                try {
+                    setTimeout(function () {
+                        container.srcObject = data.videoStream;
+                        container.play();
+                    }, 700);
+                } catch (error) {
+                    container.src = URL.createObjectURL(data.videoStream);
+                }
+            }
+
+            if (data.selfVideoStream) {
+                try {
+                    setTimeout(function () {
+                        selfContainer.srcObject = data.selfVideoStream;
+                        selfContainer.play();
+                    }, 700);
+                } catch (error) {
+                    selfContainer.src = URL.createObjectURL(data.selfVideoStream);
+                }
+
+            } else {
+                selfContainer.src = data.selfVideoUrl;
+            }
+        }
+		function setupAudio(data){
+			console.log("Audio was started")
+			 var container = document.querySelector('#testAudio');
+			 if (data.audioStream) {
+				 try {
+					 container.srcObject = data.audioStream;
+				 } catch (error) {
+					 container.src = URL.createObjectURL(data.audioStream);
+				 }
+			 } else {
+				 //safari
+				 container.src = data.audioUrl;
+			 }
+		 }
+		 function onStopAudio(){
+		 	console.log("Audio was stopped");
+			var container = document.querySelector('#testAudio');
+            container.srcObject = null;
+            container.src = "";
+		 }
+        function startPresentation(stream){         
+		console.log("presentation was started");
+            var container = document.querySelector('#testPresentation');
+                if (stream.id) {
+                    container.srcObject = stream;
+                } else {
+                    container.src = stream;
+                }
+        }
+        function onStopPresentation(){
+            console.log("presentation was stopped")
+            var container = document.querySelector('#testPresentation');
+            container.srcObject = null;
+            container.src = "";
+        }
+		
+		function onCobrowsingStart(){
+		 console.log("cobrowsing was started")
+		}
+		function onCobrowsingStopped(){
+		 console.log("cobrowsing was stopped")
+		}
+		
+        var rtclauncher = new Luware.RTCLauncher();
+        
+        var siteContact1 = {
+            tenantId: "b8104f5a-a091-e911-90fc-08dce072695b",
+            siteId: "6f6b8710-a291-e911-90fc-08dce072695b",
+            contactId: "270c04f8-a191-e911-90fc-08dce072695b"
+        };
+		<!--tania rtc2 service-->
+		 var siteContact11 = {
+            tenantId: "8b5a46c9709ee911911108dce072696b",
+            siteId: "f4312efa-709e-e911-9111-08dce072696b",
+            contactId: "26e69459-4fa2-e911-9111-08dce072696b"
+        };
+		<!--tania rtc2 contact-->
+		var siteContact12 = {
+            tenantId: "8b5a46c9709ee911911108dce072696b",
+            siteId: "f4312efa-709e-e911-9111-08dce072696b",
+            contactId: "ae9657e4-709e-e911-9111-08dce072696b"
+        };
+		 var siteContact2 = {
+            tenantId: "b8104f5a-a091-e911-90fc-08dce072695b",
+            siteId: "6f6b8710-a291-e911-90fc-08dce072695b",
+            contactId: "44543e4f-3994-e911-90fc-08dce072695b"
+        };
+		var siteContact3 = {
+		tenantId:"795cea58-2a97-e911-9111-08dce072696b",
+		siteId:"aea8de86-2a97-e911-9111-08dce072696b",
+		contactId:"33afdd9c-2a97-e911-9111-08dce072696b"
+		};
+		var siteContact = {
+            tenantId: "15e735dbbf44e81180d70a1dd8b71c0f",
+            siteId: "c89cdbae-d144-e811-80d7-0a1dd8b71c0f",
+            contactId: "28931546-8deb-e911-80df-0a1dd8b71c0f"
+        };
+		var siteContactTest = {
+            tenantId: "6a2c13f8bfa4e911911108dce072696b",
+            siteId: "13db58af-c1a4-e911-9111-08dce072696b",
+            contactId: "148d2f78-3ef7-e911-90ff-08dce072695b"
+        };
+		var siteContactAlena = {
+            tenantId: "34791dece3a6e911911208dce072696b",
+            siteId: "f6aa041a-e4a6-e911-9112-08dce072696b",
+            contactId: "9c905142-35f7-e911-90ff-08dce072695b"
+        };
+		var siteContactAlena1 = {
+            tenantId: "34791dece3a6e911911208dce072696b",
+            siteId: "f6aa041a-e4a6-e911-9112-08dce072696b",
+            contactId: "48ae3dad-e7a6-e911-9112-08dce072696b"
+        };
+		var mediaDevices = {
+			videoDeviceId: "dcc3c1951e4b7e945761f7a91ad128298c7f853c58cb2f0304639d2a3589a647",
+			audioDeviceId: "37f1b39e242983a8b8be1ad96cf953b0e49d91f0ce536140b5ba0c410792e7f1"
+		}
+		var userDetails = {
+			id: "SDK user"
+		}
+       
+        rtclauncher.init("https://preprod-rtclauncherapi.luware.com");
+        rtclauncher.conversation.videoChanged.on(setupVideo, onStopVideo);
+		rtclauncher.conversation.audioChanged.on(setupAudio, onStopAudio);
+        rtclauncher.conversation.presentationChanged.on(startPresentation, onStopPresentation);
+		rtclauncher.conversation.cobrowsingChanged.on(onCobrowsingStart, onCobrowsingStopped);
+        rtclauncher.getContact(siteContact)
+            .then(function (result) {
+                console.log(result);
+                // rtclauncher.startAudio(siteContact)
+                // .then(function (data) {
+
+                //   var container = document.querySelector('#testAudio');
+                //     if (data.audioStream) {
+                //         try {
+                //             container.srcObject = data.audioStream;
+                //         } catch (error) {
+                //             container.src = URL.createObjectURL(data.audioStream);
+                //         }
+                //     } else {
+                //         //safari
+                //         container.src = data.audioUrl;
+                //     }
+                // });
+                // rtclauncher.startVideo(siteContact)
+                //     .then(setupVideo);
+            });
+        // rtclauncher.getGroup("b8104f5a-a091-e911-90fc-08dce072695b", "6f6b8710-a291-e911-90fc-08dce072695b", "ab5ca08e-2c97-e911-9111-08dce072696b")
+        //     .then(function (result) {
+        //         console.log(result);
+        //     })
+		
+		rtclauncher.contactPresenceChanged.on(siteContact, function presenceChangedCallback(presence) {
+            console.log("siteContact presence changed");
+            console.log(presence);
+        });
+		
+		rtclauncher.getContactTemplate(siteContact, "conversation").then(function(result){
+			console.log(result);
+		});
+		
+		<!-- rtclauncher.groupPresenceChanged.on(siteGroup, function presenceChangedCallback(presence) { -->
+            <!-- console.log("siteGroup presence changed"); -->
+            <!-- console.log(presence); -->
+        <!-- }); -->
+
+/*
+	rtclauncher.startVideo(siteContact).catch(function(error){console.log("something went wrong"); console.log(error)});
+	rtclauncher.startVideo(siteContact, null, userDetails).catch(function(error){console.log("something went wrong"); console.log(error)});
+	!!!не забудь поменять ид девайсов!!!  rtclauncher.startVideo(siteContact, mediaDevices, userDetails).catch(function(error){console.log("something went wrong"); console.log(error)});
+	rtclauncher.stopVideo(siteContact).catch(function(error){console.log("something went wrong"); console.log(error)});
+	
+	rtclauncher.startAudio(siteContact).catch(function(error){console.log("something went wrong"); console.log(error)});
+	rtclauncher.stopAudio(siteContact).catch(function(error){console.log("something went wrong"); console.log(error)});
+	
+	rtclauncher.startCobrowsing(siteContact).catch(function(error){console.log("something went wrong"); console.log(error)});
+	rtclauncher.stopCobrowsing(siteContact).catch(function(error){console.log("something went wrong"); console.log(error)});
+	
+	rtclauncher.toggleMuteAudio(siteContact);
+	rtclauncher.toggleMuteAudio(siteContact, true);
+	
+	rtclauncher.updateMediaDevices(siteContact, mediaDevices);
+	
+	rtclauncher.getContactTemplate(siteContact, "conversation").then(function(result){
+        console.log(result);
+    });
+	
+	rtclauncher.getContactTemplate(siteContact, "contact").then(function(result){
+        console.log(result);
+    });
+*/
+
+    </script>
 </body>
+
 </html>
